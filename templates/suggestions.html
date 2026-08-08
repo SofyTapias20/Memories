@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Sugerencias</p>
+            <h1 class="h3">Ideas enviadas al administrador</h1>
+        </div>
+    </div>
+
+    {% if not current_user.is_admin %}
+        <div class="panel mb-4">
+            <h2 class="h5 mb-3">Enviar sugerencia</h2>
+            <form method="post" action="{{ url_for('main.suggestions') }}" class="row g-3" enctype="multipart/form-data">
+                <div class="col-md-6">
+                    <label class="form-label" for="name">Nombre de la actividad</label>
+                    <input class="form-control" id="name" name="name" type="text" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="category">Categoria</label>
+                    <select class="form-select" id="category" name="category" required>
+                        {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="mood">Mood</label>
+                    <select class="form-select" id="mood" name="mood" required>
+                        {% for mood in moods %}
+                            <option value="{{ mood }}">{{ mood }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="minutes">Tiempo estimado</label>
+                    <input class="form-control" id="minutes" name="minutes" type="number" min="5" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="cost">Costo aproximado (COP)</label>
+                    <input class="form-control" id="cost" name="cost" type="number" min="0" step="100" placeholder="25000" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="tags">Etiquetas</label>
+                    <input class="form-control" id="tags" name="tags" type="text" placeholder="relajante, social" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="image">Imagen</label>
+                    <input class="form-control" id="image" name="image" type="file" accept="image/*">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="message">Mensaje para el admin</label>
+                    <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Enviar sugerencia</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="panel">
+        <h2 class="h5 mb-3">{{ "Todas las sugerencias" if current_user.is_admin else "Mis sugerencias" }}</h2>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Actividad</th>
+                        {% if current_user.is_admin %}<th>Usuario</th>{% endif %}
+                        <th>Categoria</th>
+                        <th>Mood</th>
+                        <th>Tiempo</th>
+                        <th>Costo</th>
+                        <th>Imagen</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for suggestion in suggestions %}
+                        <tr>
+                            <td>
+                                <strong>{{ suggestion.name }}</strong>
+                                <span class="d-block small text-muted">{{ suggestion.message }}</span>
+                                <span class="d-block small">{{ suggestion.tags }}</span>
+                            </td>
+                            {% if current_user.is_admin %}<td>{{ suggestion.user.name }}</td>{% endif %}
+                            <td>{{ suggestion.category }}</td>
+                            <td>{{ suggestion.mood }}</td>
+                            <td>{{ suggestion.minutes }} min</td>
+                            <td>{{ format_cop(suggestion.cost) }}</td>
+                            <td>
+                                {% if suggestion.image_filename %}
+                                    <img class="table-thumb" src="{{ url_for('static', filename='uploads/' ~ suggestion.image_filename) }}" alt="Imagen sugerida para {{ suggestion.name }}">
+                                {% else %}
+                                    <span class="text-muted small">Sin imagen</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if current_user.is_admin %}
+                                    <form method="post" action="{{ url_for('admin.update_suggestion_status', suggestion_id=suggestion.id) }}">
+                                        <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+                                            {% for status in ["Pendiente", "Revisada", "Aprobada", "Descartada"] %}
+                                                <option value="{{ status }}" {% if suggestion.status == status %}selected{% endif %}>{{ status }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </form>
+                                {% else %}
+                                    <span class="badge text-bg-light">{{ suggestion.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="{{ 8 if current_user.is_admin else 7 }}" class="text-muted">No hay sugerencias registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
