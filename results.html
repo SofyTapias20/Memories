@@ -1,0 +1,55 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Resultados</p>
+            <h1 class="h3">Recomendaciones para ti</h1>
+            <p class="text-muted mb-0">{{ minutes }} min disponibles, mood {{ mood }}, presupuesto {{ format_cop(budget) }}.</p>
+        </div>
+        <a class="btn btn-outline-dark btn-sm" href="{{ url_for('main.questionnaire') }}">Responder otra vez</a>
+    </div>
+
+    {% if fallback_used and results %}
+        <div class="alert alert-info">No hubo coincidencias exactas por mood, asi que mostramos opciones compatibles con tu tiempo y presupuesto.</div>
+    {% endif %}
+
+    <div class="activity-grid">
+        {% for activity in results %}
+            <article class="activity-card featured">
+                {% if activity.image_filename %}
+                    <img class="activity-image" src="{{ url_for('static', filename='uploads/' ~ activity.image_filename) }}" alt="Imagen de {{ activity.name }}">
+                {% endif %}
+                <span class="badge rounded-pill text-bg-light mb-2">{{ activity.category }}</span>
+                <h2>{{ activity.name }}</h2>
+                <p>{{ activity.description or "Actividad recomendada por compatibilidad." }}</p>
+                <dl class="activity-meta">
+                    <div><dt>Mood</dt><dd>{{ activity.mood }}</dd></div>
+                    <div><dt>Tiempo</dt><dd>{{ activity.minutes }} min</dd></div>
+                    <div><dt>Costo</dt><dd>{{ format_cop(activity.cost) }}</dd></div>
+                </dl>
+                <div class="tag-row">
+                    {% for tag in activity.tag_list() %}
+                        <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <div class="card-actions">
+                    <a class="btn btn-outline-dark btn-sm" href="{{ url_for('main.activity_detail', activity_id=activity.id) }}">Detalles</a>
+                    <form method="post" action="{{ url_for('main.toggle_favorite', activity_id=activity.id) }}">
+                        <button class="favorite-button {{ 'is-active' if is_favorite(activity.id) }}" type="submit" title="{{ 'Quitar de favoritos' if is_favorite(activity.id) else 'Guardar en favoritos' }}" aria-label="{{ 'Quitar de favoritos' if is_favorite(activity.id) else 'Guardar en favoritos' }}">
+                            <span aria-hidden="true">{{ '&#9733;'|safe if is_favorite(activity.id) else '&#9734;'|safe }}</span>
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">
+                <h2 class="h5">No hay recomendaciones compatibles</h2>
+                <p class="text-muted">Aumenta el tiempo disponible o el presupuesto para ampliar opciones.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
