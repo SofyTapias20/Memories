@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-band">
+    <div>
+        <p class="eyebrow">Hola, {{ current_user.name }}</p>
+        <h1>Planes recomendados sin vueltas.</h1>
+        <p class="text-muted mb-4">Responde el cuestionario, explora actividades y guarda tus favoritas en un solo lugar.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" href="{{ url_for('main.questionnaire') }}">Responder cuestionario</a>
+            <a class="btn btn-outline-dark" href="{{ url_for('main.activities') }}">Ver actividades</a>
+        </div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-tile">
+            <span>{{ total_activities }}</span>
+            <p>Actividades disponibles</p>
+        </div>
+        <div class="stat-tile">
+            <span>{{ total_favorites }}</span>
+            <p>Favoritos guardados</p>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Novedades</p>
+            <h2 class="h4">Ultimas actividades cargadas</h2>
+        </div>
+        <a href="{{ url_for('main.activities') }}">Ver todas</a>
+    </div>
+    <div class="activity-grid">
+        {% for activity in recent_activities %}
+            <article class="activity-card">
+                {% if activity.image_filename %}
+                    <img class="activity-image" src="{{ url_for('static', filename='uploads/' ~ activity.image_filename) }}" alt="Imagen de {{ activity.name }}">
+                {% endif %}
+                <div class="d-flex justify-content-between gap-3">
+                    <span class="badge rounded-pill text-bg-light">{{ activity.category }}</span>
+                    <span class="small text-muted">{{ activity.minutes }} min</span>
+                </div>
+                <h3>{{ activity.name }}</h3>
+                <p>{{ activity.description or "Actividad disponible para recomendar." }}</p>
+                <div class="tag-row">
+                    {% for tag in activity.tag_list()[:3] %}
+                        <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </article>
+        {% else %}
+            <p class="text-muted">Aun no hay actividades cargadas.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
