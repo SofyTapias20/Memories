@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Mi espacio</p>
+            <h1 class="h3">Perfil, favoritos e historial</h1>
+        </div>
+    </div>
+
+    <div class="two-column">
+        <div class="panel">
+            <h2 class="h5 mb-3">Perfil basico</h2>
+            <form method="post" action="{{ url_for('auth.update_profile') }}">
+                <div class="mb-3">
+                    <label class="form-label" for="name">Nombre</label>
+                    <input class="form-control" id="name" name="name" type="text" value="{{ current_user.name }}" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="email">Email</label>
+                    <input class="form-control" id="email" name="email" type="email" value="{{ current_user.email }}" required>
+                </div>
+                <button class="btn btn-primary" type="submit">Actualizar perfil</button>
+            </form>
+        </div>
+        <div class="panel">
+            <h2 class="h5 mb-3">Historial de recomendaciones</h2>
+            <div class="history-list">
+                {% for item in history %}
+                    <div class="history-item">
+                        <strong>{{ item.activity.name }}</strong>
+                        <span>{{ item.mood }} | {{ item.available_minutes }} min | {{ format_cop(item.budget) }}</span>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Aun no tienes recomendaciones guardadas en el historial.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="section-heading mt-5">
+        <div>
+            <p class="eyebrow">Favoritos</p>
+            <h2 class="h4">Actividades guardadas</h2>
+        </div>
+    </div>
+    <div class="activity-grid">
+        {% for activity in favorites %}
+            <article class="activity-card">
+                {% if activity.image_filename %}
+                    <img class="activity-image" src="{{ url_for('static', filename='uploads/' ~ activity.image_filename) }}" alt="Imagen de {{ activity.name }}">
+                {% endif %}
+                <span class="badge rounded-pill text-bg-light mb-2">{{ activity.category }}</span>
+                <h3>{{ activity.name }}</h3>
+                <p>{{ activity.description or "Actividad favorita." }}</p>
+                <div class="card-actions">
+                    <a class="btn btn-outline-dark btn-sm" href="{{ url_for('main.activity_detail', activity_id=activity.id) }}">Detalles</a>
+                    <form method="post" action="{{ url_for('main.toggle_favorite', activity_id=activity.id) }}">
+                        <button class="favorite-button is-active" type="submit" title="Quitar de favoritos" aria-label="Quitar de favoritos">
+                            <span aria-hidden="true">&#9733;</span>
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">
+                <h2 class="h5">No tienes favoritos todavia</h2>
+                <p class="text-muted">Explora actividades y guarda las que mas te gusten.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
