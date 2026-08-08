@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-copy">
+        <p class="eyebrow">Bienvenido de nuevo</p>
+        <h1>Encuentra planes que encajen con tu tiempo, animo y presupuesto.</h1>
+        <p class="text-muted">Inicia sesion para recibir recomendaciones, guardar favoritos y enviar sugerencias al administrador.</p>
+    </div>
+    <div class="panel auth-panel">
+        <h2 class="h4 mb-3">Iniciar sesion</h2>
+        <form method="post" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-control" id="email" type="email" name="email" autocomplete="email" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">Contrasena</label>
+                <input class="form-control" id="password" type="password" name="password" autocomplete="current-password" required>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a class="small" href="{{ url_for('auth.forgot_password') }}">Olvid&eacute; mi contrasena</a>
+            </div>
+            <button class="btn btn-primary w-100" type="submit">Entrar</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0">
+            Admin inicial: <strong>admin@memories.com</strong> / <strong>Admin123*</strong>
+        </p>
+        <hr>
+        <p class="mb-0 small">No tienes cuenta? <a href="{{ url_for('auth.register') }}">Registrate aqui</a>.</p>
+    </div>
+</section>
+{% endblock %}
