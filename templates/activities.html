@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Explorar</p>
+            <h1 class="h3">{{ detail_activity.name if detail_activity is defined else "Todas las actividades" }}</h1>
+        </div>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('main.questionnaire') }}">Recomendar ahora</a>
+    </div>
+
+    {% if detail_activity is not defined %}
+        <form class="panel filter-panel mb-4" method="get" action="{{ url_for('main.activities') }}">
+            <div>
+                <label class="form-label" for="category">Categoria</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="">Todas</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="mood">Mood</label>
+                <select class="form-select" id="mood" name="mood">
+                    <option value="">Todos</option>
+                    {% for mood in moods %}
+                        <option value="{{ mood }}" {% if selected_mood == mood %}selected{% endif %}>{{ mood }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="max_minutes">Max. minutos</label>
+                <input class="form-control" id="max_minutes" name="max_minutes" type="number" min="1" value="{{ request.args.get('max_minutes', '') }}">
+            </div>
+            <div>
+                <label class="form-label" for="max_cost">Max. costo (COP)</label>
+                <input class="form-control" id="max_cost" name="max_cost" type="number" min="0" step="100" value="{{ request.args.get('max_cost', '') }}">
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-dark" type="submit">Filtrar</button>
+                <a class="btn btn-link" href="{{ url_for('main.activities') }}">Limpiar</a>
+            </div>
+        </form>
+    {% endif %}
+
+    <div class="activity-grid">
+        {% for activity in activities %}
+            <article class="activity-card">
+                {% if activity.image_filename %}
+                    <img class="activity-image" src="{{ url_for('static', filename='uploads/' ~ activity.image_filename) }}" alt="Imagen de {{ activity.name }}">
+                {% endif %}
+                <div class="d-flex justify-content-between gap-3 mb-2">
+                    <span class="badge rounded-pill text-bg-light">{{ activity.category }}</span>
+                    <span class="small text-muted">{{ activity.mood }}</span>
+                </div>
+                <h2>{{ activity.name }}</h2>
+                <p>{{ activity.description or "Actividad disponible dentro de Memories." }}</p>
+                <dl class="activity-meta">
+                    <div><dt>Tiempo</dt><dd>{{ activity.minutes }} min</dd></div>
+                    <div><dt>Costo</dt><dd>{{ format_cop(activity.cost) }}</dd></div>
+                </dl>
+                <div class="tag-row">
+                    {% for tag in activity.tag_list() %}
+                        <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <div class="card-actions">
+                    <a class="btn btn-outline-dark btn-sm" href="{{ url_for('main.activity_detail', activity_id=activity.id) }}">Detalles</a>
+                    <form method="post" action="{{ url_for('main.toggle_favorite', activity_id=activity.id) }}">
+                        <button class="favorite-button {{ 'is-active' if is_favorite(activity.id) }}" type="submit" title="{{ 'Quitar de favoritos' if is_favorite(activity.id) else 'Guardar en favoritos' }}" aria-label="{{ 'Quitar de favoritos' if is_favorite(activity.id) else 'Guardar en favoritos' }}">
+                            <span aria-hidden="true">{{ '&#9733;'|safe if is_favorite(activity.id) else '&#9734;'|safe }}</span>
+                        </button>
+                    </form>
+                </div>
+                {% if detail_activity is defined %}
+                    <form class="image-upload-form" method="post" action="{{ url_for('main.upload_activity_image', activity_id=activity.id) }}" enctype="multipart/form-data">
+                        <label class="form-label" for="image-{{ activity.id }}">Subir imagen</label>
+                        <div class="input-group">
+                            <input class="form-control" id="image-{{ activity.id }}" name="image" type="file" accept="image/*" required>
+                            <button class="btn btn-outline-dark" type="submit">Subir</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </article>
+        {% else %}
+            <div class="empty-state">
+                <h2 class="h5">No encontramos actividades</h2>
+                <p class="text-muted">Prueba con otros filtros o responde el cuestionario.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
